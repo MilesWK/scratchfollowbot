@@ -1,8 +1,20 @@
 # Get Griffpatch, find top projects, get comments, follow from there
 import scratchattach as sa
 import time
+import ast
+import os
+from dotenv import load_dotenv
 
-def get_list_to_follow():
+load_dotenv()
+
+BOT_USERNAME = os.getenv("USERNAME")
+BOT_PASSWORD = os.getenv("PASSWORD")
+
+##########################
+#      GET USER LIST     #
+##########################
+
+def get_list_to_follow(): # gets users.
     start_time = time.perf_counter()
 
     users_to_follow = []
@@ -24,5 +36,31 @@ def get_list_to_follow():
     elapsed_time = end_time - start_time
 
     print(f"Fetched {len(users_to_follow)} users in {elapsed_time:.6f} seconds.")
-    
-get_list_to_follow()
+
+
+##########################
+#      FOLLOW VIA LIST   #
+##########################
+
+def follow_by_file():
+    with open("userlist.txt", "r") as file:
+        user_list_as_file = file.read()
+        
+
+    user_list = ast.literal_eval(user_list_as_file)  
+    user_list = list(set(user_list))
+    x = 0
+    session = sa.login(BOT_USERNAME, BOT_PASSWORD) 
+    while x < len(user_list):
+        user_to_follow = session.connect_user(user_list[x])
+        try:
+            user_to_follow.follow()
+            print(f"FOLLOWED {user_to_follow.name}")
+            x += 1
+        except Exception as e:
+            print(e)
+            if "rate" in str(e):
+                time.sleep(15)
+
+
+follow_by_file()
